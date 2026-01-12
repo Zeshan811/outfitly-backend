@@ -1,0 +1,63 @@
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    role TEXT CHECK (role IN ('user', 'admin')) DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE categories (
+    id SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL
+);
+
+CREATE TABLE products (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    image TEXT NOT NULL,
+    category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE cart (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    product_id INTEGER REFERENCES products(id) ON DELETE CASCADE,
+    quantity INTEGER DEFAULT 1
+);
+
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    total_amount INTEGER NOT NULL,
+    status TEXT CHECK (status IN ('pending', 'paid', 'cancelled')) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE order_items (
+    id SERIAL PRIMARY KEY,
+    order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+    product_id INTEGER REFERENCES products(id),
+    quantity INTEGER NOT NULL,
+    price INTEGER NOT NULL
+);
+
+CREATE TABLE payments (
+    id SERIAL PRIMARY KEY,
+    order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+    payment_method TEXT NOT NULL,
+    payment_status TEXT CHECK (payment_status IN ('success', 'failed')) NOT NULL,
+    transaction_id TEXT,
+    paid_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+supabse db pass Zeshan123@#
+
+ALTER TABLE orders
+    DROP CONSTRAINT IF EXISTS orders_status_check;
+
+ALTER TABLE orders
+    ADD CONSTRAINT orders_status_check
+    CHECK (status IN ('pending', 'packed', 'shipped', 'delivered', 'cancelled'));
